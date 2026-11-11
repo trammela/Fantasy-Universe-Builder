@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- saved from url=(0069)file:///C:/Users/tramm/Downloads/Fantasy_Ranking_Calculator_V6_1.html -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Fantasy Ranking Calculator </title>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Fantasy Ranking Calculator V6.1</title>
 <style>
 body{font-family:Segoe UI,Arial;background:#101318;color:#eee;max-width:1700px;margin:auto;padding:20px}
 .section{background:#1d232c;padding:15px;border-radius:10px;margin:12px 0}
@@ -8,7 +8,7 @@ body{font-family:Segoe UI,Arial;background:#101318;color:#eee;max-width:1700px;m
 label{display:block;font-weight:bold;margin-bottom:4px}
 input,select,button{width:100%;padding:8px;background:#2a313d;color:#fff;border:1px solid #555;border-radius:6px}
 button{background:#b8860b}.card{background:#151a20;padding:10px;border-radius:8px}.badge{background:gold;color:#000;padding:4px 8px;border-radius:5px;font-weight:bold}.cmp{width:100%;border-collapse:collapse}.cmp td,.cmp th{border:1px solid #555;padding:6px}
-</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b8860b"></head><body>
+</style></head><body>
 <h1>Fantasy Ranking Calculator V6.1</h1>
 <div class="section">
 <label>Name</label><input id="name" value="Unnamed Entity">
@@ -27,7 +27,15 @@ button{background:#b8860b}.card{background:#151a20;padding:10px;border-radius:8p
 <div class="section"><h3>Character Card</h3><div id="card"></div></div>
 <div class="section"><h3>Comparison Center</h3><div class="grid"><div><label>Character A</label><select id="compareA"></select></div><div><label>Character B</label><select id="compareB"></select></div></div><button onclick="compareCharacters()">Compare</button><div id="comparison"></div></div>
 <script>
-const species={Human:{rank:'D',desc:'Adaptable generalists',stats:{str:50,spd:50,dur:50,mag:30,intel:50,abl:40,res:40},subs:['Commoner','Soldier','Merchant','Noble']},Elf:{rank:'C',desc:'Long-lived magical beings',stats:{str:40,spd:70,dur:40,mag:70,intel:65,abl:60,res:40},subs:['Wood Elf','High Elf','Dark Elf']},Dragon:{rank:'S',desc:'Ancient apex predators',stats:{str:95,spd:80,dur:95,mag:90,intel:75,abl:95,res:70},subs:['Red Dragon','Blue Dragon','Ancient Dragon','Elder Dragon']}};
+let defaultSpecies={
+={Human:{rank:'D',desc:'Adaptable generalists',stats:{str:50,spd:50,dur:50,mag:30,intel:50,abl:40,res:40},subs:['Commoner','Soldier','Merchant','Noble']},Elf:{rank:'C',desc:'Long-lived magical beings',stats:{str:40,spd:70,dur:40,mag:70,intel:65,abl:60,res:40},subs:['Wood Elf','High Elf','Dark Elf']},Dragon:{rank:'S',desc:'Ancient apex predators',stats:{str:95,spd:80,dur:95,mag:90,intel:75,abl:95,res:70},subs:['Red Dragon','Blue Dragon','Ancient Dragon','Elder Dragon']}};let species =
+JSON.parse(
+    localStorage.getItem("speciesPresets")
+)
+||
+JSON.parse(
+    JSON.stringify(defaultSpecies)
+);
 const classes=['Warrior','Mage','Assassin','King'];
 function g(i){return document.getElementById(i)}
 function init(){Object.keys(species).forEach(k=>g('species').add(new Option(k,k)));classes.forEach(c=>g('cls').add(new Option(c,c)));g('species').onchange=applySpecies;applySpecies();refreshLibrary();}
@@ -44,4 +52,4 @@ function difficulty(diff){diff=Math.abs(diff);if(diff<50)return'Even';if(diff<15
 function compareCharacters(){let a=JSON.parse(localStorage.getItem(g('compareA').value));let b=JSON.parse(localStorage.getItem(g('compareB').value));if(!a||!b)return;let combat=a.threat>b.threat?a.name:b.name;let political=a.influence>b.influence?a.name:b.name;let overall=a.world>b.world?a.name:b.name;g('comparison').innerHTML='<table class="cmp"><tr><th>Stat</th><th>'+a.name+'</th><th>'+b.name+'</th></tr><tr><td>Threat</td><td>'+a.threat.toFixed(1)+'</td><td>'+b.threat.toFixed(1)+'</td></tr><tr><td>Influence</td><td>'+a.influence.toFixed(1)+'</td><td>'+b.influence.toFixed(1)+'</td></tr><tr><td>World</td><td>'+a.world.toFixed(1)+'</td><td>'+b.world.toFixed(1)+'</td></tr><tr><td>Strength</td><td>'+a.str+'</td><td>'+b.str+'</td></tr><tr><td>Magic</td><td>'+a.mag+'</td><td>'+b.mag+'</td></tr><tr><td>Authority</td><td>'+a.aut+'</td><td>'+b.aut+'</td></tr></table><p><b>Combat Winner:</b> '+combat+'</p><p><b>Political Winner:</b> '+political+'</p><p><b>Overall Winner:</b> '+overall+'</p><p><b>Difficulty:</b> '+difficulty(a.world-b.world)+'</p>';}
 window.onload=init;
 </script>
-<script> if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js"); }); } </script></body></html>
+</body></html>
