@@ -8,7 +8,7 @@ body{font-family:Segoe UI,Arial;background:#101318;color:#eee;max-width:1700px;m
 label{display:block;font-weight:bold;margin-bottom:4px}
 input,select,button{width:100%;padding:8px;background:#2a313d;color:#fff;border:1px solid #555;border-radius:6px}
 button{background:#b8860b}.card{background:#151a20;padding:10px;border-radius:8px}.badge{background:gold;color:#000;padding:4px 8px;border-radius:5px;font-weight:bold}.cmp{width:100%;border-collapse:collapse}.cmp td,.cmp th{border:1px solid #555;padding:6px}
-</style></head><body>
+</style><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b8860b"></head><body>
 <h1>Fantasy Ranking Calculator V6.1</h1>
 <div class="section">
 <label>Name</label><input id="name" value="Unnamed Entity">
@@ -44,4 +44,4 @@ function difficulty(diff){diff=Math.abs(diff);if(diff<50)return'Even';if(diff<15
 function compareCharacters(){let a=JSON.parse(localStorage.getItem(g('compareA').value));let b=JSON.parse(localStorage.getItem(g('compareB').value));if(!a||!b)return;let combat=a.threat>b.threat?a.name:b.name;let political=a.influence>b.influence?a.name:b.name;let overall=a.world>b.world?a.name:b.name;g('comparison').innerHTML='<table class="cmp"><tr><th>Stat</th><th>'+a.name+'</th><th>'+b.name+'</th></tr><tr><td>Threat</td><td>'+a.threat.toFixed(1)+'</td><td>'+b.threat.toFixed(1)+'</td></tr><tr><td>Influence</td><td>'+a.influence.toFixed(1)+'</td><td>'+b.influence.toFixed(1)+'</td></tr><tr><td>World</td><td>'+a.world.toFixed(1)+'</td><td>'+b.world.toFixed(1)+'</td></tr><tr><td>Strength</td><td>'+a.str+'</td><td>'+b.str+'</td></tr><tr><td>Magic</td><td>'+a.mag+'</td><td>'+b.mag+'</td></tr><tr><td>Authority</td><td>'+a.aut+'</td><td>'+b.aut+'</td></tr></table><p><b>Combat Winner:</b> '+combat+'</p><p><b>Political Winner:</b> '+political+'</p><p><b>Overall Winner:</b> '+overall+'</p><p><b>Difficulty:</b> '+difficulty(a.world-b.world)+'</p>';}
 window.onload=init;
 </script>
-</body></html>
+<script> if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("./sw.js"); }); } </script></body></html>
