@@ -1,55 +1,515 @@
 <!DOCTYPE html>
 <!-- saved from url=(0069)file:///C:/Users/tramm/Downloads/Fantasy_Ranking_Calculator_V6_1.html -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Fantasy Ranking Calculator V6.1</title>
-<style>
-body{font-family:Segoe UI,Arial;background:#101318;color:#eee;max-width:1700px;margin:auto;padding:20px}
-.section{background:#1d232c;padding:15px;border-radius:10px;margin:12px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-label{display:block;font-weight:bold;margin-bottom:4px}
-input,select,button{width:100%;padding:8px;background:#2a313d;color:#fff;border:1px solid #555;border-radius:6px}
-button{background:#b8860b}.card{background:#151a20;padding:10px;border-radius:8px}.badge{background:gold;color:#000;padding:4px 8px;border-radius:5px;font-weight:bold}.cmp{width:100%;border-collapse:collapse}.cmp td,.cmp th{border:1px solid #555;padding:6px}
-</style></head><body>
-<h1>Fantasy Ranking Calculator V6.1</h1>
-<div class="section">
-<label>Name</label><input id="name" value="Unnamed Entity">
-<div class="grid">
-<div><label>Species</label><select id="species"><option value="Human">Human</option><option value="Elf">Elf</option><option value="Dragon">Dragon</option></select></div>
-<div><label>Subspecies</label><select id="subspecies"><option value="Red Dragon">Red Dragon</option><option value="Blue Dragon">Blue Dragon</option><option value="Ancient Dragon">Ancient Dragon</option><option value="Elder Dragon">Elder Dragon</option></select></div>
-<div><label>Class</label><select id="cls"><option value="Warrior">Warrior</option><option value="Mage">Mage</option><option value="Assassin">Assassin</option><option value="King">King</option></select></div>
-<div><label>Level</label><input id="level" type="number" min="1" max="100" value="1"></div>
-</div><div id="speciesInfo" class="card"><b>Dragon</b><br>Ancient apex predators<br>Average Rank: S</div>
-</div>
-<div class="section"><h3>Threat Stats</h3><div class="grid">
-<div><label>Strength</label><input id="str" type="number"></div><div><label>Speed</label><input id="spd" type="number"></div><div><label>Durability</label><input id="dur" type="number"></div><div><label>Magic</label><input id="mag" type="number"></div><div><label>Intelligence</label><input id="intel" type="number"></div><div><label>Abilities</label><input id="abl" type="number"></div><div><label>Resources</label><input id="res" type="number"></div></div></div>
-<div class="section"><h3>Influence Stats</h3><div class="grid">
-<div><label>Wealth</label><input id="wth" value="50"></div><div><label>Authority</label><input id="aut" value="50"></div><div><label>Reputation</label><input id="rep" value="50"></div><div><label>Followers</label><input id="fol" value="50"></div><div><label>Territory</label><input id="ter" value="50"></div><div><label>Knowledge</label><input id="kno" value="50"></div><div><label>Connections</label><input id="con" value="50"></div></div></div>
-<div class="section"><button onclick="calculate()">Calculate</button><button onclick="saveCharacter()">Save Character</button><button onclick="loadCharacter()">Load Character</button><button onclick="deleteCharacter()">Delete Character</button><select id="library"></select></div>
-<div class="section"><h3>Character Card</h3><div id="card"></div></div>
-<div class="section"><h3>Comparison Center</h3><div class="grid"><div><label>Character A</label><select id="compareA"></select></div><div><label>Character B</label><select id="compareB"></select></div></div><button onclick="compareCharacters()">Compare</button><div id="comparison"></div></div>
-<script>
-let defaultSpecies={
-={Human:{rank:'D',desc:'Adaptable generalists',stats:{str:50,spd:50,dur:50,mag:30,intel:50,abl:40,res:40},subs:['Commoner','Soldier','Merchant','Noble']},Elf:{rank:'C',desc:'Long-lived magical beings',stats:{str:40,spd:70,dur:40,mag:70,intel:65,abl:60,res:40},subs:['Wood Elf','High Elf','Dark Elf']},Dragon:{rank:'S',desc:'Ancient apex predators',stats:{str:95,spd:80,dur:95,mag:90,intel:75,abl:95,res:70},subs:['Red Dragon','Blue Dragon','Ancient Dragon','Elder Dragon']}};let species =
-JSON.parse(
-    localStorage.getItem("speciesPresets")
-)
-||
-JSON.parse(
-    JSON.stringify(defaultSpecies)
-);
-const classes=['Warrior','Mage','Assassin','King'];
-function g(i){return document.getElementById(i)}
-function init(){Object.keys(species).forEach(k=>g('species').add(new Option(k,k)));classes.forEach(c=>g('cls').add(new Option(c,c)));g('species').onchange=applySpecies;applySpecies();refreshLibrary();}
-function applySpecies(){let sp=species[g('species').value];g('subspecies').innerHTML='';sp.subs.forEach(x=>g('subspecies').add(new Option(x,x)));Object.entries(sp.stats).forEach(([k,v])=>g(k).value=v);g('speciesInfo').innerHTML='<b>'+g('species').value+'</b><br>'+sp.desc+'<br>Average Rank: '+sp.rank;}
-function rank(v){if(v>=1100)return'SSS';if(v>=950)return'SS';if(v>=800)return'S';if(v>=650)return'A';if(v>=500)return'B';if(v>=350)return'C';if(v>=200)return'D';if(v>=100)return'E';return'F';}
-function scores(d){let t=(+d.str)*2+(+d.spd)*1.5+(+d.dur)*2+(+d.mag)*2+(+d.intel)+(+d.abl)*2+(+d.res)*1.5;let i=(+d.wth)*2+(+d.aut)*3+(+d.rep)*1.5+(+d.fol)*2+(+d.ter)*2+(+d.kno)+(+d.con)*2;let w=t*0.6+i*0.4;return{threat:t,influence:i,world:w,worldRank:rank(w)}}
-function collect(){return {name:g('name').value,species:g('species').value,subspecies:g('subspecies').value,cls:g('cls').value,level:g('level').value,str:str.value,spd:spd.value,dur:dur.value,mag:mag.value,intel:intel.value,abl:abl.value,res:res.value,wth:wth.value,aut:aut.value,rep:rep.value,fol:fol.value,ter:ter.value,kno:kno.value,con:con.value};}
-function calculate(){let d=collect();let s=scores(d);g('card').innerHTML='<div class=card><h2>'+d.name+'</h2><p>'+d.species+' / '+d.subspecies+'</p><p>Class: '+d.cls+' | Level '+d.level+'</p><p>Threat: '+s.threat.toFixed(1)+'</p><p>Influence: '+s.influence.toFixed(1)+'</p><p>World: '+s.world.toFixed(1)+' <span class=badge>'+s.worldRank+'</span></p></div>';return {...d,...s};}
-function saveCharacter(){let c=calculate();localStorage.setItem('fc_'+c.name,JSON.stringify(c));refreshLibrary();}
-function loadCharacter(){let d=JSON.parse(localStorage.getItem(g('library').value));if(!d)return;Object.keys(d).forEach(k=>{let e=g(k);if(e)e.value=d[k]});calculate();}
-function deleteCharacter(){if(g('library').value){localStorage.removeItem(g('library').value);refreshLibrary();}}
-function refreshLibrary(){['library','compareA','compareB'].forEach(id=>g(id).innerHTML='');Object.keys(localStorage).filter(k=>k.startsWith('fc_')).forEach(k=>{let d=JSON.parse(localStorage.getItem(k));let txt=d.name+' • '+d.species+' • L'+d.level+' • '+d.worldRank;['library','compareA','compareB'].forEach(id=>g(id).add(new Option(txt,k)));});}
-function difficulty(diff){diff=Math.abs(diff);if(diff<50)return'Even';if(diff<150)return'Difficult';if(diff<300)return'Hard';if(diff<500)return'Overwhelming';return'Impossible';}
-function compareCharacters(){let a=JSON.parse(localStorage.getItem(g('compareA').value));let b=JSON.parse(localStorage.getItem(g('compareB').value));if(!a||!b)return;let combat=a.threat>b.threat?a.name:b.name;let political=a.influence>b.influence?a.name:b.name;let overall=a.world>b.world?a.name:b.name;g('comparison').innerHTML='<table class="cmp"><tr><th>Stat</th><th>'+a.name+'</th><th>'+b.name+'</th></tr><tr><td>Threat</td><td>'+a.threat.toFixed(1)+'</td><td>'+b.threat.toFixed(1)+'</td></tr><tr><td>Influence</td><td>'+a.influence.toFixed(1)+'</td><td>'+b.influence.toFixed(1)+'</td></tr><tr><td>World</td><td>'+a.world.toFixed(1)+'</td><td>'+b.world.toFixed(1)+'</td></tr><tr><td>Strength</td><td>'+a.str+'</td><td>'+b.str+'</td></tr><tr><td>Magic</td><td>'+a.mag+'</td><td>'+b.mag+'</td></tr><tr><td>Authority</td><td>'+a.aut+'</td><td>'+b.aut+'</td></tr></table><p><b>Combat Winner:</b> '+combat+'</p><p><b>Political Winner:</b> '+political+'</p><p><b>Overall Winner:</b> '+overall+'</p><p><b>Difficulty:</b> '+difficulty(a.world-b.world)+'</p>';}
-window.onload=init;
-</script>
-</body></html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <title>Fantasy Ranking Calculator V6.1</title>
+    <style>
+        body {
+            font-family: Segoe UI, Arial;
+            background: #101318;
+            color: #eee;
+            max-width: 1700px;
+            margin: auto;
+            padding: 20px
+        }
+
+        .section {
+            background: #1d232c;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 12px 0
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 8px;
+            background: #2a313d;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 6px
+        }
+
+        button {
+            background: #b8860b
+        }
+
+        .card {
+            background: #151a20;
+            padding: 10px;
+            border-radius: 8px
+        }
+
+        .badge {
+            background: gold;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-weight: bold
+        }
+
+        .cmp {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .cmp td,
+        .cmp th {
+            border: 1px solid #555;
+            padding: 6px
+        }
+
+        .stat-desc {
+            display: block;
+            color: #9fb3c8;
+            font-size: 12px;
+            font-weight: normal;
+            margin-top: 3px;
+            min-height: 15px
+        }
+
+        .stat-slider {
+            width: 100%;
+            margin-top: 5px;
+            accent-color: #b8860b
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Fantasy Ranking Calculator V6.1</h1>
+    <div class="section">
+        <label>Name</label><input id="name" value="Unnamed Entity">
+        <div class="grid">
+            <div><label>Species</label><select id="species">
+                    <option value="Human">Human</option>
+                    <option value="Elf">Elf</option>
+                    <option value="Dragon">Dragon</option>
+                </select></div>
+            <div><label>Subspecies</label><select id="subspecies">
+                    <option value="Red Dragon">Red Dragon</option>
+                    <option value="Blue Dragon">Blue Dragon</option>
+                    <option value="Ancient Dragon">Ancient Dragon</option>
+                    <option value="Elder Dragon">Elder Dragon</option>
+                </select></div>
+            <div><label>Class</label><select id="cls">
+                    <option value="Warrior">Warrior</option>
+                    <option value="Mage">Mage</option>
+                    <option value="Assassin">Assassin</option>
+                    <option value="King">King</option>
+                </select></div>
+            <div><label>Level</label><input id="level" type="number" min="1" max="100" value="1"></div>
+            <div><label>Image</label><input id="charImg" type="file" accept="image/*"><img id="charImgPrev" style="display:none;max-width:140px;margin-top:6px;border-radius:8px" alt="Character image"></div>
+        </div>
+        <div id="speciesInfo" class="card"><b>Dragon</b><br>Ancient apex predators<br>Average Rank: S</div>
+        <div class="section">
+            <h3>Species Preset Manager</h3>
+            <label>Species Description</label>
+<textarea id="speciesDesc" rows="3"></textarea>
+
+<label>Species Rank</label>
+
+<select id="speciesRank">
+
+<option value="F">F</option>
+<option value="E">E</option>
+<option value="D">D</option>
+<option value="C">C</option>
+<option value="B">B</option>
+<option value="A">A</option>
+
+<option value="S">S</option>
+<option value="SS">SS</option>
+<option value="SSS">SSS</option>
+
+<option value="SSS+">SSS+</option>
+<option value="EX">EX</option>
+<option value="Ω">Ω</option>
+
+</select>
+
+            <button onclick="saveSpeciesPreset()">
+                Save Species
+            </button>
+
+            <label>New Species Name</label>
+<input id="newSpeciesName" placeholder="e.g. Goblin">
+
+            <button onclick="createSpeciesPreset()">
+                Create Species
+            </button>
+
+            <button onclick="deleteSpeciesPreset()">
+                Delete Species
+            </button>
+
+            <button onclick="toggleSpeciesLock()">
+Lock / Unlock Species
+</button>
+
+        </div>
+    </div>
+    <div class="section">
+        <h3>Threat Stats</h3>
+        <div class="grid">
+            <div><label>Strength</label><input id="str" type="number"><small class="stat-desc" id="sd-str"></small></div>
+            <div><label>Speed</label><input id="spd" type="number"><small class="stat-desc" id="sd-spd"></small></div>
+            <div><label>Durability</label><input id="dur" type="number"><small class="stat-desc" id="sd-dur"></small></div>
+            <div><label>Magic</label><input id="mag" type="number"><small class="stat-desc" id="sd-mag"></small></div>
+            <div><label>Intelligence</label><input id="intel" type="number"><small class="stat-desc" id="sd-intel"></small></div>
+            <div><label>Abilities</label><input id="abl" type="number"><small class="stat-desc" id="sd-abl"></small></div>
+            <div><label>Resources</label><input id="res" type="number"><small class="stat-desc" id="sd-res"></small></div>
+        </div>
+    </div>
+    <div class="section">
+        <h3>Influence Stats</h3>
+        <div class="grid">
+            <div><label>Wealth</label><input id="wth" value="50"><small class="stat-desc" id="sd-wth"></small></div>
+            <div><label>Authority</label><input id="aut" value="50"><small class="stat-desc" id="sd-aut"></small></div>
+            <div><label>Reputation</label><input id="rep" value="50"><small class="stat-desc" id="sd-rep"></small></div>
+            <div><label>Followers</label><input id="fol" value="50"><small class="stat-desc" id="sd-fol"></small></div>
+            <div><label>Territory</label><input id="ter" value="50"><small class="stat-desc" id="sd-ter"></small></div>
+            <div><label>Knowledge</label><input id="kno" value="50"><small class="stat-desc" id="sd-kno"></small></div>
+            <div><label>Connections</label><input id="con" value="50"><small class="stat-desc" id="sd-con"></small></div>
+        </div>
+    </div>
+    <div class="section"><button onclick="calculate()">Calculate</button><button onclick="saveCharacter()">Save
+            Character</button><button onclick="loadCharacter()">Load Character</button><button
+            onclick="deleteCharacter()">Delete Character</button><select id="library"></select></div>
+    <div class="section">
+        <h3>Character Card</h3>
+        <div id="card"></div>
+    </div>
+    <div class="section">
+        <h3>TCG Potentials</h3>
+        <div class="grid">
+            <div class="card"><b>ATK</b><br><span id="tcg-atk" class="badge">0</span></div>
+            <div class="card"><b>DEF</b><br><span id="tcg-def" class="badge">0</span></div>
+            <div class="card"><b>INF</b><br><span id="tcg-inf" class="badge">0</span></div>
+            <div class="card"><b>Cost</b><br><span id="tcg-cost" class="badge">0</span></div>
+        </div>
+    </div>
+    <div class="section">
+        <h3>Comparison Center</h3>
+        <div class="grid">
+            <div><label>Character A</label><select id="compareA"></select></div>
+            <div><label>Character B</label><select id="compareB"></select></div>
+        </div><button onclick="compareCharacters()">Compare</button>
+        <div id="comparison"></div>
+    </div>
+    <script>
+        let defaultSpecies = {
+
+            Human: {
+                locked:true,
+                rank: 'D',
+                desc: 'Adaptable generalists',
+                stats: {
+                    str: 50,
+                    spd: 50,
+                    dur: 50,
+                    mag: 30,
+                    intel: 50,
+                    abl: 40,
+                    res: 40
+                },
+                subs: ['Commoner', 'Soldier', 'Merchant', 'Noble']
+            },
+
+            Elf: {
+                locked:true,
+                rank: 'C',
+                desc: 'Long-lived magical beings',
+                stats: {
+                    str: 40,
+                    spd: 70,
+                    dur: 40,
+                    mag: 70,
+                    intel: 65,
+                    abl: 60,
+                    res: 40
+                },
+                subs: ['Wood Elf', 'High Elf', 'Dark Elf']
+            },
+
+            Dragon: {locked:true,
+                rank: 'S',
+                desc: 'Ancient apex predators',
+                stats: {
+                    str: 95,
+                    spd: 80,
+                    dur: 95,
+                    mag: 90,
+                    intel: 75,
+                    abl: 95,
+                    res: 70
+                },
+                subs: [
+                    'Red Dragon',
+                    'Blue Dragon',
+                    'Ancient Dragon',
+                    'Elder Dragon'
+                ]
+            }
+
+        };
+
+        let species =
+            JSON.parse(localStorage.getItem("speciesPresets"))
+            ||
+            JSON.parse(JSON.stringify(defaultSpecies)); const classes = ['Warrior', 'Mage', 'Assassin', 'King'];
+        let currentImage = null;
+        function g(i) { return document.getElementById(i) }
+        function tiers(...labels) { return labels.map((l, i) => [i * 10, l]); }
+        const statLabels = {
+            str: [[0, 'Bedridden'], [10, 'Child'], [20, 'Average Untrained'], [30, 'Farmer'], [40, 'Above Average'], [50, 'Adventurer/Soldier'], [60, 'Veteran Knight'], [70, 'Bend Metal with Effort'], [80, 'Crush Armor/Smash Walls'], [90, 'Destroy Structures with Raw Force'], [100, 'Species Maximum'], [101, 'Impossible Feats for This Species'], [111, 'Solo Armies'], [126, 'Threatens Nations'], [141, 'Damage Dimensions'], [161, 'Threatens Worlds'], [181, 'Erase Worlds/Universes']],
+            spd: [[0, 'Bedridden'], [10, 'Elderly'], [20, 'Runs but Tires Quickly'], [30, 'Sprints Normally'], [40, 'Reacts to Obvious Threats'], [50, 'Dodges Predictable Attacks'], [60, 'Can React to Most Melee'], [70, 'Can Dodge Arrows if Prepared'], [80, 'Evade Multiple Attackers Simultaneously'], [90, 'Appears as a Blur'], [100, 'Species Maximum'], [101, 'Beyond Biological Limits'], [111, 'Movement Appears Supernatural'], [126, 'Creates Environmental Damage'], [141, 'Perceived as Teleporting'], [161, 'Exceeds Conventional Physics'], [181, 'Distance Becomes Irrelevant']],
+            dur: [[0, 'Minor Injuries Can Be Fatal'], [10, 'Elderly'], [20, 'Can Endure Minor Hardship'], [30, 'Survives Ordinary Accidents'], [40, 'Can Fight Through Moderate Injuries'], [50, 'Survive Battlefield Punishment'], [60, 'Survive Disabling Injuries'], [70, 'Survive Extreme Physical Punishment'], [80, 'Weapons Are Less Effective'], [90, 'Survive Army Scale Attack'], [100, 'Species Maximum'], [101, 'Survive Fatal Attacks'], [111, 'Survive Castle Destroying Attack'], [126, 'Survive Natural Disasters'], [141, 'Survive Reality-Altering Attack'], [161, 'Survive Planetary Scale Attack'], [181, 'Exist Through World Ending Events']],
+            mag: [[0, 'Cannot Use Magic'], [10, 'Simple Tricks and Daily-Use Spells'], [20, 'Basic Combat or Support/Buff Spells'], [30, 'Can Support Small Groups with Magic'], [40, 'Can Influence Battle Through Magic'], [50, 'Can Command Powerful Elemental Magic'], [60, 'Can Alter Cities'], [70, 'Can Reshape Regions'], [80, 'Nation-Changing Spells'], [90, 'Can Solo Kingdoms'], [100, 'Species Maximum'], [101, 'Create Impossible Spells'], [111, 'Raise Mountains/Summon Disasters'], [126, 'Create Magical Wastelands'], [141, 'Alter Physical Laws'], [161, 'Affect Dimensions'], [181, 'Create Worlds/Universes']],
+            intel: [[0, 'Primitive Monsters'], [10, 'Adapt Through Experience'], [20, 'Communicates/Solve Small Problems'], [30, 'Everyday Reasoning'], [40, 'Can Understand Complex Concepts with Training'], [50, 'Plan Effectively/Solve Advanced Problems'], [60, 'Master a Field of Study'], [70, 'Revolutionize Disciplines'], [80, 'Manipulate Kingdoms/Plan Decades Ahead'], [90, 'Outthink Entire Governments'], [100, 'Species Maximum'], [101, 'Solve Problems Considered Impossible'], [111, 'Create New Sciences/Predict Historical Events'], [126, 'Systems Can Reshape Nations'], [141, 'Understand Dimensional Laws'], [161, 'Understand Universal Laws'], [181, 'Comprehend Creation']],
+            abl: [[0, 'None'], [10, 'Useful but Not Combat-Defining'], [20, 'Limited Special Technique'], [30, 'Can Outperform Ordinary Opponents'], [40, 'Strongly Affect Combat Outcome'], [50, 'Dominate Ordinary Opponents with Ability Alone'], [60, 'Can Create Complex Ability Combinations'], [70, 'World Class'], [80, 'Affect Cities and Armies'], [90, 'Reshape Battles Through Power Alone'], [100, 'Species Maximum'], [101, 'Unique Power That Shouldn\'t Exist'], [111, 'Mass Resurrection/Large-Scale Curse'], [126, 'World-Scale/Army-Wide Enhancement'], [141, 'Dimensional Control'], [161, 'Multi-Dimensional Influence'], [181, 'Creation of Universes']],
+            res: [[0, 'Possess Virtually Nothing'], [10, 'Maintain Armor/Survive Independently'], [20, 'Operate Effectively Without Support'], [30, 'Replace Losses/Maintain Operations'], [40, 'Can Hire Personnel'], [50, 'Can Fund Army Expeditions'], [60, 'Influence a National Army/Economy'], [70, 'Large-Scale Operations Indefinitely'], [80, 'Continental Events'], [90, 'Globally Significant'], [100, 'Species Maximum'], [101, 'Influence Multiple Nations Simultaneously'], [111, 'Continent-Wide Influence/Projects'], [126, 'Build World Wonders'], [141, 'Dimensional Trade Route Control'], [161, 'Control Multiple Realms'], [181, 'Fund Existence Itself/Control Entire Realities']],
+            wth: [[0, 'Struggles to Meet Basic Survival Needs'], [10, 'Can Support Themselves but Little Else'], [20, 'Can Save Small Amounts of Wealth'], [30, 'Can Hire Workers and Expand Business'], [40, 'Can Influence Local Markets'], [50, 'Can Finance Large Ventures'], [60, 'Can Influence Regional Economies'], [70, 'Can Fund Armies and Large Infrastructure'], [80, 'Can Shape International Trade'], [90, 'Possesses Globally Significant Resources'], [100, 'Maximum Natural Economic Influence'], [101, 'Wealth Exceeds What the Species Should Reasonably Achieve'], [111, 'Can Influence Entire Nations Economically'], [126, 'Can Form Nations Through Wealth Alone'], [141, 'Wealth Affects More Than One World'], [161, 'Controls Wealth Across Worlds and Dimensions'], [181, 'Owns or Controls the Resources That Sustain Existence Itself']],
+            aut: [[0, 'Can Only Influence Willing Participants'], [10, 'Commands a Handful of People'], [20, 'Authority Affects Dozens or Hundreds'], [30, 'Can Enforce Local Rules'], [40, 'Can Issue Region-Wide Directives'], [50, 'Can Mobilize Thousands'], [60, 'Can Shape National Policy'], [70, 'Can Command Nations'], [80, 'Can Influence Continental Politics'], [90, 'World Leaders Respond to Their Decisions'], [100, 'Maximum Achievable Political Authority'], [101, 'Authority Surpasses Ordinary Governments'], [111, 'Entire Nations Obey Unquestioningly'], [126, 'Can Erase or Create Nations Through Decrees'], [141, 'Authority Extends Beyond a Single Reality'], [161, 'Commands Entire Worlds and Dimensions'], [181, 'Authority Is Fundamental to Existence Itself']],
+            rep: [[0, 'No Influence Through Name Recognition'], [10, 'Recognized by Dozens of People'], [20, 'Known Locally'], [30, 'Name Carries Local Credibility'], [40, 'Recognized Across Multiple Communities'], [50, 'Reputation Opens Doors'], [60, 'Known by Most of a Nation'], [70, 'Their Name Becomes Part of History'], [80, 'People Know the Name Even If They\'ve Never Met Them'], [90, 'Recognition Spans the Entire World'], [100, 'Maximum Natural Reputation'], [101, 'Name Becomes Synonymous with Greatness'], [111, 'Entire Nations Revere Them'], [126, 'Their Legacy Defines History'], [141, 'Legends Influence Reality Itself'], [161, 'Known Across Dimensions and Worlds'], [181, 'Their Name Is Woven Into Existence Itself']],
+            fol: [[0, 'No Meaningful Following (0 Followers)'], [10, 'Can Rely on a Handful of People (1-10 Followers)'], [20, 'Can Accomplish Local Objectives Through Followers (10-50 Followers)'], [30, 'Can Coordinate Small Organizations (50-200 Followers)'], [40, 'Can Mobilize an Entire Community (200-1K Followers)'], [50, 'Can Maintain Large Organizations (1-10K Followers)'], [60, 'Can Influence National Events Through Supporters (10-100K Followers)'], [70, 'Can Mobilize Enormous Populations (100K-1M Followers)'], [80, 'Can Influence Multiple Nations Simultaneously (1-10M Followers)'], [90, 'Movements Can Reshape Global Culture (10+ M Followers)'], [100, 'Maximum Natural Influence Through Followers'], [101, 'Follower Count Surpasses Natural Expectations'], [111, 'Entire Populations Worship or Revere Them'], [126, 'Can Redirect the Course of Nations Through Followers'], [141, 'Followers Exist Across Realities'], [161, 'Followed Across Worlds and Dimensions'], [181, 'Every Conscious Being Ultimately Follows Their Influence']],
+            ter: [[0, 'Controls No Territory'], [10, 'Controls a Small Personal Area'], [20, 'Owns Multiple Properties'], [30, 'Controls Part of a Settlement'], [40, 'Controls an Entire Settlement'], [50, 'Land Spans Multiple Settlements'], [60, 'Controls Large Political Regions'], [70, 'Rules a Nation-Sized Domain'], [80, 'Controls Multiple Nations'], [90, 'Controls a Majority of the Known World'], [100, 'Maximum Natural Land Control'], [101, 'Entire World + Dependencies'], [111, 'World + Spiritual Realms'], [126, 'Multiple Worlds'], [141, 'Dimensional Domains'], [161, 'Solar Systems/Galactic Domains'], [181, 'Entire Reality/All Existence']],
+            kno: [[0, 'Instinct Only'], [10, 'Understands Everyday Life'], [20, 'Profession-Specific Skills'], [30, 'Broad Understanding of Society and Trade'], [40, 'Recognized Expert in a Field'], [50, 'Can Teach and Advance Entire Disciplines'], [60, 'Possesses Knowledge Unavailable to Most'], [70, 'Can Answer Questions Few Others Can'], [80, 'Knows Truths Hidden from Nations'], [90, 'One of the Most Knowledgeable Beings Alive'], [100, 'Knows Everything Realistically Knowable'], [101, 'Understands Information Beyond Normal Limits'], [111, 'Knows Truths Inaccessible to Ordinary Beings'], [126, 'Information Can Change the Course of History'], [141, 'Understands Reality on a Fundamental Level'], [161, 'Knows Truths Spanning Worlds and Dimensions'], [181, 'Understands the Foundations of Existence Itself']],
+            con: [[0, 'No Meaningful Contacts'], [10, 'Friends and Acquaintances'], [20, 'Connected Within a Community'], [30, 'Can Reach Important Regional Figures'], [40, 'Contacts in Multiple Communities'], [50, 'Can Arrange Meetings with Key Decision-Makers'], [60, 'Knows Major Leaders and Institutions'], [70, 'Has Direct Access to Major National Powers'], [80, 'Can Connect Governments and Organizations'], [90, 'Can Reach Almost Anyone Important'], [100, 'Knows Every Major Figure Within the Species\' Sphere'], [101, 'Relationships Exceed Normal Political Boundaries'], [111, 'Connected to Kings, Gods, and Legendary Figures Alike'], [126, 'Connections Can Reshape Nations'], [141, 'Relationships Extend Beyond One Reality'], [161, 'Connected Across Worlds and Dimensions'], [181, 'Every Significant Force in Existence Is Within Their Sphere']]
+        };
+        function statLabel(id, v) {
+            let steps = statLabels[id];
+            let label = steps[0][1];
+            for (let i = 0; i < steps.length; i++) {
+                if (v >= steps[i][0]) label = steps[i][1]; else break;
+            }
+            return label;
+        }
+        function refreshStatLabels() {
+            Object.keys(statLabels).forEach(id => {
+                let v = parseFloat(g(id).value);
+                if (isNaN(v)) v = 0;
+                g('sd-' + id).textContent = statLabel(id, v);
+                let slider = g(id + '-s');
+                if (slider) slider.value = Math.max(0, Math.min(200, v));
+            });
+            updateTCG();
+        }
+        function num(id) { let v = parseFloat(g(id).value); return isNaN(v) ? 0 : v; }
+        function updateTCG() {
+            let atk = num('str') * 0.40 + num('mag') * 0.30 + num('spd') * 0.10 + num('abl') * 0.20;
+            let def = num('dur') * 0.50 + num('str') * 0.20 + num('spd') * 0.10 + num('mag') * 0.10 + num('abl') * 0.10;
+            let inf = (num('wth') + num('aut') + num('rep') + num('fol') + num('ter') + num('kno') + num('con')) / 7;
+            g('tcg-atk').textContent = atk.toFixed(1);
+            g('tcg-def').textContent = def.toFixed(1);
+            g('tcg-inf').textContent = inf.toFixed(1);
+            g('tcg-cost').textContent = ((atk + def + inf) / 20).toFixed(1);
+        }
+        function init() { g('species').innerHTML=''; Object.keys(species).forEach(k => g('species').add(new Option(k, k))); classes.forEach(c => g('cls').add(new Option(c, c))); g('species').onchange = applySpecies; Object.keys(statLabels).forEach(id => { let inp = g(id); inp.addEventListener('input', refreshStatLabels); let slider = document.createElement('input'); slider.type = 'range'; slider.min = 0; slider.max = 200; slider.className = 'stat-slider'; slider.id = id + '-s'; inp.insertAdjacentElement('afterend', slider); slider.addEventListener('input', () => { inp.value = slider.value; refreshStatLabels(); }); }); g('charImg').addEventListener('change', e => { let f = e.target.files[0]; if (!f) return; let reader = new FileReader(); reader.onload = ev => { let img = new Image(); img.onload = () => { let c = document.createElement('canvas'); let s = Math.min(1, 400 / Math.max(img.width, img.height)); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); currentImage = c.toDataURL('image/jpeg', 0.8); let p = g('charImgPrev'); p.src = currentImage; p.style.display = 'block'; }; img.src = ev.target.result; }; reader.readAsDataURL(f); }); applySpecies(); refreshLibrary(); }
+    function applySpecies() {
+
+    let sp = species[g('species').value];
+
+    g('subspecies').innerHTML='';
+
+    sp.subs.forEach(x =>
+        g('subspecies').add(new Option(x,x))
+    );
+
+    Object.entries(sp.stats)
+    .forEach(([k,v]) => g(k).value=v);
+
+    g('speciesDesc').value = sp.desc;
+    g('speciesRank').value = sp.rank;
+
+    g('speciesInfo').innerHTML =
+    '<b>'+g('species').value+
+    '</b><br>'+
+    sp.desc+
+    '<br>Average Rank: '+
+    sp.rank+
+    '<br>Locked: '+
+    (sp.locked ? '🔒 Yes' : '🔓 No');
+
+    refreshStatLabels();
+}
+        function rank(v) { if (v >= 1100) return 'SSS'; if (v >= 950) return 'SS'; if (v >= 800) return 'S'; if (v >= 650) return 'A'; if (v >= 500) return 'B'; if (v >= 350) return 'C'; if (v >= 200) return 'D'; if (v >= 100) return 'E'; return 'F'; }
+        function scores(d) { let t = (+d.str) * 2 + (+d.spd) * 1.5 + (+d.dur) * 2 + (+d.mag) * 2 + (+d.intel) + (+d.abl) * 2 + (+d.res) * 1.5; let i = (+d.wth) * 2 + (+d.aut) * 3 + (+d.rep) * 1.5 + (+d.fol) * 2 + (+d.ter) * 2 + (+d.kno) + (+d.con) * 2; let w = t * 0.6 + i * 0.4; return { threat: t, influence: i, world: w, worldRank: rank(w) } }
+        function collect() { return { name: g('name').value, species: g('species').value, subspecies: g('subspecies').value, cls: g('cls').value, level: g('level').value, str: str.value, spd: spd.value, dur: dur.value, mag: mag.value, intel: intel.value, abl: abl.value, res: res.value, wth: wth.value, aut: aut.value, rep: rep.value, fol: fol.value, ter: ter.value, kno: kno.value, con: con.value, img: currentImage }; }
+        function calculate() { let d = collect(); let s = scores(d); g('card').innerHTML = '<div class=card>' + (d.img ? '<img src="' + d.img + '" style="max-width:220px;border-radius:8px;display:block;margin-bottom:8px">' : '') + '<h2>' + d.name + '</h2><p>' + d.species + ' / ' + d.subspecies + '</p><p>Class: ' + d.cls + ' | Level ' + d.level + '</p><p>Threat: ' + s.threat.toFixed(1) + '</p><p>Influence: ' + s.influence.toFixed(1) + '</p><p>World: ' + s.world.toFixed(1) + ' <span class=badge>' + s.worldRank + '</span></p></div>'; return { ...d, ...s }; }
+        function saveCharacter() { let c = calculate(); try { localStorage.setItem('fc_' + c.name, JSON.stringify(c)); } catch (err) { alert('Save failed — storage is full. Try a smaller image or delete old characters.'); return; } refreshLibrary(); }
+        function loadCharacter() { let d = JSON.parse(localStorage.getItem(g('library').value)); if (!d) return; Object.keys(d).forEach(k => { let e = g(k); if (e) e.value = d[k] }); currentImage = d.img || null; let p = g('charImgPrev'); if (currentImage) { p.src = currentImage; p.style.display = 'block'; } else { p.style.display = 'none'; p.removeAttribute('src'); } g('charImg').value = ''; calculate(); }
+        function deleteCharacter() { if (g('library').value) { localStorage.removeItem(g('library').value); refreshLibrary(); } }
+        function refreshLibrary() { ['library', 'compareA', 'compareB'].forEach(id => g(id).innerHTML = ''); Object.keys(localStorage).filter(k => k.startsWith('fc_')).forEach(k => { let d = JSON.parse(localStorage.getItem(k)); let txt = d.name + ' • ' + d.species + ' • L' + d.level + ' • ' + d.worldRank;['library', 'compareA', 'compareB'].forEach(id => g(id).add(new Option(txt, k))); }); }
+        function difficulty(diff) { diff = Math.abs(diff); if (diff < 50) return 'Even'; if (diff < 150) return 'Difficult'; if (diff < 300) return 'Hard'; if (diff < 500) return 'Overwhelming'; return 'Impossible'; }
+        function compareCharacters() { let a = JSON.parse(localStorage.getItem(g('compareA').value)); let b = JSON.parse(localStorage.getItem(g('compareB').value)); if (!a || !b) return; let combat = a.threat > b.threat ? a.name : b.name; let political = a.influence > b.influence ? a.name : b.name; let overall = a.world > b.world ? a.name : b.name; g('comparison').innerHTML = '<table class="cmp"><tr><th>Stat</th><th>' + a.name + '</th><th>' + b.name + '</th></tr><tr><td>Threat</td><td>' + a.threat.toFixed(1) + '</td><td>' + b.threat.toFixed(1) + '</td></tr><tr><td>Influence</td><td>' + a.influence.toFixed(1) + '</td><td>' + b.influence.toFixed(1) + '</td></tr><tr><td>World</td><td>' + a.world.toFixed(1) + '</td><td>' + b.world.toFixed(1) + '</td></tr><tr><td>Strength</td><td>' + a.str + '</td><td>' + b.str + '</td></tr><tr><td>Magic</td><td>' + a.mag + '</td><td>' + b.mag + '</td></tr><tr><td>Authority</td><td>' + a.aut + '</td><td>' + b.aut + '</td></tr></table><p><b>Combat Winner:</b> ' + combat + '</p><p><b>Political Winner:</b> ' + political + '</p><p><b>Overall Winner:</b> ' + overall + '</p><p><b>Difficulty:</b> ' + difficulty(a.world - b.world) + '</p>'; }
+       function saveSpeciesPreset() {
+
+    let name = g('species').value;
+
+    species[name].stats = {
+
+        str:+g('str').value,
+        spd:+g('spd').value,
+        dur:+g('dur').value,
+        mag:+g('mag').value,
+        intel:+g('intel').value,
+        abl:+g('abl').value,
+        res:+g('res').value
+
+    };
+species[name].desc =
+    g('speciesDesc').value;
+
+species[name].rank =
+    g('speciesRank').value;
+
+    localStorage.setItem(
+        "speciesPresets",
+        JSON.stringify(species)
+    );
+
+    applySpecies();
+
+    alert(name + " Saved");
+
+}
+
+function createSpeciesPreset() {
+
+    let name = g('newSpeciesName').value.trim();
+
+    if (!name) {
+        alert("Enter a species name first");
+        return;
+    }
+
+    if (species[name]) {
+        alert(name + " already exists");
+        return;
+    }
+
+    g('newSpeciesName').value = '';
+
+    species[name] = {
+        locked:false,
+
+        rank: "D",
+
+        desc: "Custom Species",
+
+        stats: {
+
+            str: +g('str').value,
+            spd: +g('spd').value,
+            dur: +g('dur').value,
+            mag: +g('mag').value,
+            intel: +g('intel').value,
+            abl: +g('abl').value,
+            res: +g('res').value
+
+        },
+
+        subs: ["Default"]
+
+    };
+
+    localStorage.setItem(
+        "speciesPresets",
+        JSON.stringify(species)
+    );
+
+    g('species').add(
+        new Option(name, name)
+    );
+
+    g('species').value = name;
+
+    applySpecies();
+
+}
+
+function deleteSpeciesPreset() {
+
+    let name = g('species').value;
+
+    if (species[name].locked) {
+
+        alert(
+            name +
+            " is locked and cannot be deleted"
+        );
+
+        return;
+
+    }
+
+    if (!confirm("Delete " + name + "?"))
+        return;
+
+    delete species[name];
+
+    localStorage.setItem(
+        "speciesPresets",
+        JSON.stringify(species)
+    );
+
+    g('species').innerHTML = '';
+
+    Object.keys(species).forEach(k => {
+
+        g('species')
+            .add(new Option(k, k));
+
+    });
+
+    g('species').value = 'Human';
+
+    applySpecies();
+
+    alert(name + " Deleted");
+
+}
+function toggleSpeciesLock() {
+
+    let name = g('species').value;
+
+    species[name].locked =
+        !species[name].locked;
+
+    localStorage.setItem(
+        "speciesPresets",
+        JSON.stringify(species)
+    );
+
+    applySpecies();
+
+    alert(
+        name +
+        (species[name].locked
+            ? " Locked"
+            : " Unlocked")
+    );
+
+}
+        window.onload = init;
+    </script>
+</body>
+
+</html>
